@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+#  mysql-db:
+#    image: mysql:8.0.32   # 로컬 버전과 동일하게 맞춤
+#    restart: always
+#    environment:
+#      MYSQL_ROOT_PASSWORD: 9333   # root 계정 비밀번호
+#      MYSQL_DATABASE: onion-db          # 초기 생성할 DB 이름
+#      MYSQL_USER: onion-user            # 사용자 계정
+#      MYSQL_PASSWORD: onion1!        # 사용자 비밀번호
+#    ports:
+#      - "3308:3306"                   # 호스트와 컨테이너 포트 매핑
+#    volumes:
+#      - ./mysql_data:/var/lib/mysql   # 데이터 영속화
+
+  mysql-db:
+    image: mysql:5.7
+    restart: always
+    platform: linux/amd64
+    environment:
+      MYSQL_ROOT_PASSWORD: 9333
+      MYSQL_DATABASE: onion-db
+      MYSQL_USER: onion-user
+      MYSQL_PASSWORD: onion1!
+    ports:
+      - "3308:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.0
+    container_name: elasticsearch
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=true
+      - xpack.security.transport.ssl.enabled=false
+      - ELASTIC_PASSWORD=onion1!
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    command: >
+      sh -c "
+      bin/elasticsearch-plugin install analysis-nori;
+      bin/elasticsearch
+      "
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.5.0
+    container_name: kibana
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+        - I18N_LOCALE=ko
+        - TZ=Asia/Seoul
+    ports:
+      - "5601:5601"
+
+volumes:
+  db_data:
+  es-data:
+    driver: local
+#  redis-data:
+#  mongo-data:
+#  rabbitmq_data:
+#    driver: local
