@@ -118,6 +118,11 @@ public class CommentService {
         if (article.get().getIsDeleted()) {
             throw new ForbiddenException("article is deleted");
         }
+
+        // 기사id와 댓글id 모두 일치해야 수정(내가 gpt에게 물어보고 수정 2025-10-15)
+        Comment commentArticle = commentRepository.findByIdAndArticleId(commentId, articleId).orElseThrow(() -> new ResourceNotFoundException("article ID not equal"));
+        // 여기까지
+
         Optional<Comment> comment = commentRepository.findById(commentId);
         if (comment.isEmpty() || comment.get().getIsDeleted()) {
             throw new ResourceNotFoundException("comment not found");
@@ -125,6 +130,9 @@ public class CommentService {
         if (comment.get().getAuthor() != author.get()) {
             throw new ForbiddenException("comment author different");
         }
+//        if (comment.getArticle().getId().equals(articleId)) {
+//            throw new RuntimeException("해당 댓글은 이 게시글에 속해 있지 않습니다.");
+//        }
         if (dto.getContent() != null) {
             comment.get().setContent(dto.getContent());
         }
@@ -153,6 +161,11 @@ public class CommentService {
         if (article.get().getIsDeleted()) {
             throw new ForbiddenException("article is deleted");
         }
+
+        // 기사id와 댓글id 모두 일치해야 삭제(내가 gpt에게 물어보고 수정 2025-10-15)
+        Comment commentArticle = commentRepository.findByIdAndArticleId(commentId, articleId).orElseThrow(() -> new ResourceNotFoundException("article ID not equal"));
+        // 여기까지
+
         Optional<Comment> comment = commentRepository.findById(commentId);
         if (comment.isEmpty() || comment.get().getIsDeleted()) {
             throw new ResourceNotFoundException("comment not found");
