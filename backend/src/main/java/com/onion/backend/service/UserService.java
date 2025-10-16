@@ -1,15 +1,23 @@
 package com.onion.backend.service;
 
 import com.onion.backend.controller.dto.UserCreateRequest;
+import com.onion.backend.dto.SignUpUser;
+import com.onion.backend.dto.WriteDeviceDto;
+import com.onion.backend.entity.Device;
 import com.onion.backend.entity.User;
 import com.onion.backend.jwt.JwtUtil;
 import com.onion.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -24,13 +32,11 @@ public class UserService {
         this.jwtUtil = jwtUtil;
     }
 
-    public User createUser(UserCreateRequest request) {
-        User user = User.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .email(request.getEmail())
-                .createdAt(LocalDateTime.now())
-                .build();
+    public User createUser(SignUpUser signUpUser) {
+        User user = new User();
+        user.setUsername(signUpUser.getUsername());
+        user.setPassword(passwordEncoder.encode(signUpUser.getPassword()));
+        user.setEmail(signUpUser.getEmail());
         return userRepository.save(user);
     }
 
@@ -40,6 +46,32 @@ public class UserService {
 
     public List<User> getUsers() {
         return userRepository.findAll();
+    }
+
+    public List<Device> getDevices() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+        if (user.isPresent()) {
+            return user.get().getDeviceList();
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
+    public Device addDevice(WriteDeviceDto writeDeviceDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+        if (user.isPresent()) {
+            Device device = new Device();
+            device.setDeviceName(writeDeviceDto.getDeviceName());
+            device.setToken(writeDeviceDto.getToken());
+            user.get().getDeviceList().add(device);
+            userRepository.save(user.get());
+            return device;
+        }
+        return null;
     }
 
     public String login(String username, String password) {

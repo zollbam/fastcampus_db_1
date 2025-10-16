@@ -2,6 +2,7 @@ package com.onion.backend.controller;
 
 import com.onion.backend.controller.dto.TokenRequest;
 import com.onion.backend.controller.dto.UserCreateRequest;
+import com.onion.backend.dto.SignUpUser;
 import com.onion.backend.entity.User;
 import com.onion.backend.jwt.JwtUtil;
 import com.onion.backend.service.CustomUserDetailsService;
@@ -44,8 +45,8 @@ public class UserController {
     }
 
     @PostMapping("/singup")
-    public ResponseEntity<User> createUser(@RequestBody UserCreateRequest request) {
-        User user = userService.createUser(request);
+    public ResponseEntity<User> createUser(@RequestBody SignUpUser signUpUser) {
+        User user = userService.createUser(signUpUser);
         return ResponseEntity.ok(user);
     }
 

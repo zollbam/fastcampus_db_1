@@ -2,21 +2,23 @@ package com.onion.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Entity
-@Table(name = "`user`")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@EntityListeners(AuditingEntityListener.class)
 public class User {
 
     @Id
@@ -36,11 +38,53 @@ public class User {
 
     private LocalDateTime lastLoginAt; // 최근 로그인 시간
 
+    @Column(columnDefinition = "json")
+    @Convert(converter = DeviceListConverter.class)
+    private List<Device> deviceList = new ArrayList<>();
+
     @CreatedDate
     @Column(nullable = false, insertable = true)
-    private LocalDateTime createdAt; // 생성일 (가입일)
+    private LocalDateTime createdDate; // 생성일 (가입일)
 
     @LastModifiedDate
-    private LocalDateTime updatedAt; // 갱신일
+    private LocalDateTime updatedDate; // 갱신일
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdDate = LocalDateTime.now();
+        if (deviceList == null) {
+            deviceList = new ArrayList<>(); // 기본값을 빈 배열로 설정
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedDate = LocalDateTime.now();
+    }
+
+//    @Override
+//    public Collection<? extends GrantedAuthority> getAuthorities() {
+//        return null;
+//    }
+//
+//    @Override
+//    public boolean isAccountNonExpired() {
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean isAccountNonLocked() {
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean isCredentialsNonExpired() {
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean isEnabled() {
+//        return true;
+//    }
 }
 
