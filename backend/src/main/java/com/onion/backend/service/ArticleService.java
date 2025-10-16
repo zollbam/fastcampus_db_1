@@ -10,6 +10,7 @@ import com.onion.backend.entity.User;
 import com.onion.backend.exception.ForbiddenException;
 import com.onion.backend.exception.RateLimitException;
 import com.onion.backend.exception.ResourceNotFoundException;
+import com.onion.backend.pojo.WriteArticle;
 import com.onion.backend.repository.ArticleRepository;
 import com.onion.backend.repository.BoardRepository;
 import com.onion.backend.repository.UserRepository;
@@ -39,17 +40,22 @@ public class ArticleService {
     private final ElasticSearchService elasticSearchService;
     private final ObjectMapper objectMapper;
 
+    private final RabbitMQSender rabbitMQSender;
+
+
     @Autowired
     public ArticleService(BoardRepository boardRepository,
                           ArticleRepository articleRepository,
                           UserRepository userRepository,
                           ElasticSearchService elasticSearchService,
-                          ObjectMapper objectMapper) {
+                          ObjectMapper objectMapper,
+                          RabbitMQSender rabbitMQSender) {
         this.boardRepository = boardRepository;
         this.articleRepository = articleRepository;
         this.userRepository = userRepository;
         this.elasticSearchService = elasticSearchService;
         this.objectMapper = objectMapper;
+        this.rabbitMQSender = rabbitMQSender;
     }
 
     @Transactional
@@ -60,7 +66,6 @@ public class ArticleService {
             throw new RateLimitException("article not written by rate limit");
         }
         Optional<User> author = userRepository.findByUsername(userDetails.getUsername());
-
         Optional<Board> board = boardRepository.findById(boardId);
         if (author.isEmpty()) {
             throw new ResourceNotFoundException("author not found");
@@ -75,6 +80,10 @@ public class ArticleService {
         article.setContent(dto.getContent());
         articleRepository.save(article);
         this.indexArticle(article);
+        WriteArticle articleNotification = new WriteArticle();
+        articleNotification.setArticleId(article.getId());
+        articleNotification.setUserId(author.get().getId());
+        rabbitMQSender.send(articleNotification);
         return article;
     }
 
