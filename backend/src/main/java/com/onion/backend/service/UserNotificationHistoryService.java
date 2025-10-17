@@ -64,8 +64,7 @@ public class UserNotificationHistoryService {
         LocalDateTime weekDate = LocalDateTime.now().minusWeeks(7);
         // 일주일 전 알림만 노출
         List<UserNotificationHistory> userNotificationHistoryList
-                = userNotificationHistoryRepository.findByUserIdAndCreatedDateAfter(
-                user.get().getId(), weekDate);
+                = userNotificationHistoryRepository.findByUserIdAndCreatedDateAfter(user.get().getId(), weekDate);
 
         // 일주일 전 공지만 추출
         List<Notice> notices = noticeRepository.findByCreatedDate(weekDate);
