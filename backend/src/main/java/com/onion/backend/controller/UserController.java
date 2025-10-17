@@ -4,14 +4,17 @@ import com.onion.backend.controller.dto.TokenRequest;
 import com.onion.backend.controller.dto.UserCreateRequest;
 import com.onion.backend.dto.SignUpUser;
 import com.onion.backend.entity.User;
+import com.onion.backend.entity.UserNotificationHistory;
 import com.onion.backend.jwt.JwtUtil;
 import com.onion.backend.service.CustomUserDetailsService;
 import com.onion.backend.service.JwtBlacklistService;
+import com.onion.backend.service.UserNotificationHistoryService;
 import com.onion.backend.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,12 +34,19 @@ public class UserController {
     private final CustomUserDetailsService userDetailsService;
     private final JwtBlacklistService jwtBlacklistService;
 
+    private final UserNotificationHistoryService userNotificationHistoryService;
+
     @Autowired
-    public UserController(UserService userService, JwtUtil jwtUtil, CustomUserDetailsService userDetailsService, JwtBlacklistService jwtBlacklistService) {
+    public UserController(UserService userService,
+                          JwtUtil jwtUtil,
+                          CustomUserDetailsService userDetailsService,
+                          JwtBlacklistService jwtBlacklistService,
+                          UserNotificationHistoryService userNotificationHistoryService) {
         this.userService = userService;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.jwtBlacklistService = jwtBlacklistService;
+        this.userNotificationHistoryService = userNotificationHistoryService;
     }
 
     @GetMapping("")
@@ -44,7 +54,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers());
     }
 
-    @PostMapping("/singup")
+    @PostMapping("/signUp")
     public ResponseEntity<User> createUser(@RequestBody SignUpUser signUpUser) {
         User user = userService.createUser(signUpUser);
         return ResponseEntity.ok(user);
@@ -110,6 +120,17 @@ public class UserController {
         } else {
             return ResponseEntity.badRequest().body("유효하지 않은 토큰입니다.");
         }
+    }
+
+    @PostMapping("/history")
+    @ResponseStatus(HttpStatus.OK)
+    public void readHistory(@RequestParam String historyId) {
+        userNotificationHistoryService.readNotification(historyId);
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<List<UserNotificationHistory>> getHistoryList() {
+        return ResponseEntity.ok(userNotificationHistoryService.getNotificationList());
     }
 }
 
