@@ -18,4 +18,4 @@ SHOW SLAVE STATUS;
 
 SHOW TABLES;
 
-# SET GLOBAL read_only = OFF;
+-- SET GLOBAL read_only = OFF;
