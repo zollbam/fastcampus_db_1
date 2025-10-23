@@ -13,7 +13,7 @@ def generate_text(length=8):
 
 class CommonUser(HttpUser):
     # TODO: 여기서 본인 EC2 IP 바꿔주세요
-    host = "http://43.200.2.206:8080"
+    host = "http://:8080"
     wait_time = constant(5)
 
     @task
@@ -48,6 +48,19 @@ class CommonUser(HttpUser):
             "title": generate_text(100),
             "content": generate_text(200)
         })
+        # 게시글 여러 번 작성
+#         self.client.post(f"/api/boards/{board_id}/articles", headers=headers, json={
+#             "title": generate_text(100),
+#             "content": generate_text(200)
+#         })
+#         self.client.post(f"/api/boards/{board_id}/articles", headers=headers, json={
+#                     "title": generate_text(100),
+#                     "content": generate_text(200)
+#                 })
+#         self.client.post(f"/api/boards/{board_id}/articles", headers=headers, json={
+#                     "title": generate_text(100),
+#                     "content": generate_text(200)
+#                 })
         # 게시글 중에 랜덤하게 하나 댓글 달기
         if articles:
             article_id = random.choice(articles)["id"]
